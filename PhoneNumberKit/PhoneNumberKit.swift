@@ -163,9 +163,18 @@ public final class PhoneNumberKit: NSObject {
         if #available(iOS 10.0, *), let countryCode = currentLocale.regionCode {
             return countryCode.uppercased()
         } else {
-			if let countryCode = (currentLocale as NSLocale).object(forKey: .countryCode) as? String {
+#if os(Linux)
+            // Locale to NSLocale coercion is not available on Linux implementation
+            // regionCode is an equivalent substitute according to: https://stackoverflow.com/questions/39596238/how-to-get-country-code-using-nslocale-in-swift-3
+            if let countryCode = (currentLocale.regionCode) {
                 return countryCode.uppercased()
             }
+
+#else
+            if let countryCode = (currentLocale as NSLocale).object(forKey: .countryCode) as? String {
+                return countryCode.uppercased()
+            }
+#endif
         }
         return PhoneNumberConstants.defaultCountry
     }
