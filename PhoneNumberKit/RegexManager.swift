@@ -15,9 +15,7 @@ final class RegexManager {
     var regularExpresionPool = [String : NSRegularExpression]()
 
     var spaceCharacterSet: CharacterSet = {
-        let characterSet = NSMutableCharacterSet(charactersIn: "\u{00a0}")
-        characterSet.formUnion(with: CharacterSet.whitespacesAndNewlines)
-        return characterSet as CharacterSet
+        return CharacterSet.whitespacesAndNewlines.union(CharacterSet.init(charactersIn: "\u{00a0}"))
     }()
 
     deinit {
