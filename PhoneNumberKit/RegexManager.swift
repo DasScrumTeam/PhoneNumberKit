@@ -9,23 +9,21 @@
 import Foundation
 
 final class RegexManager {
-    
+
     // MARK: Regular expression pool
 
     var regularExpresionPool = [String : NSRegularExpression]()
 
     var spaceCharacterSet: CharacterSet = {
-        let characterSet = NSMutableCharacterSet(charactersIn: "\u{00a0}")
-        characterSet.formUnion(with: CharacterSet.whitespacesAndNewlines)
-        return characterSet as CharacterSet
+        return CharacterSet.whitespacesAndNewlines.union(CharacterSet.init(charactersIn: "\u{00a0}"))
     }()
-    
+
     deinit {
         regularExpresionPool.removeAll()
     }
 
     // MARK: Regular expression
-    
+
     func regexWithPattern(_ pattern: String) throws -> NSRegularExpression {
         if let regex = regularExpresionPool[pattern] {
             return regex
@@ -42,7 +40,7 @@ final class RegexManager {
             }
         }
     }
-    
+
     func regexMatches(_ pattern: String, string: String) throws -> [NSTextCheckingResult] {
         do {
             let internalString = string
@@ -54,7 +52,7 @@ final class RegexManager {
             throw PhoneNumberError.generalError
         }
     }
-    
+
     func phoneDataDetectorMatch(_ string: String) throws -> NSTextCheckingResult {
         let fallBackMatches = try regexMatches(PhoneNumberPatterns.validPhoneNumberPattern, string: string)
         if let firstMatch = fallBackMatches.first {
@@ -66,7 +64,7 @@ final class RegexManager {
     }
 
     // MARK: Match helpers
-    
+
     func matchesAtStart(_ pattern: String, string: String) -> Bool {
         do {
             let matches = try regexMatches(pattern, string: string)
@@ -80,7 +78,7 @@ final class RegexManager {
         }
         return false
     }
-    
+
     func stringPositionByRegex(_ pattern: String, string: String) -> Int {
         do {
             let matches = try regexMatches(pattern, string: string)
@@ -92,7 +90,7 @@ final class RegexManager {
             return -1
         }
     }
-    
+
     func matchesExist(_ pattern: String?, string: String) -> Bool {
         guard let pattern = pattern else {
             return false
@@ -106,7 +104,7 @@ final class RegexManager {
         }
     }
 
-    
+
     func matchesEntirely(_ pattern: String?, string: String) -> Bool {
         guard var pattern = pattern else {
             return false
@@ -114,7 +112,7 @@ final class RegexManager {
         pattern = "^(\(pattern))$"
         return matchesExist(pattern, string: string)
     }
-    
+
     func matchedStringByRegex(_ pattern: String, string: String) throws -> [String] {
         do {
             let matches = try regexMatches(pattern, string: string)
@@ -129,9 +127,9 @@ final class RegexManager {
         }
         return []
     }
-    
+
     // MARK: String and replace
-    
+
     func replaceStringByRegex(_ pattern: String, string: String) -> String {
         do {
             var replacementResult = string
@@ -152,7 +150,7 @@ final class RegexManager {
             return string
         }
     }
-    
+
     func replaceStringByRegex(_ pattern: String, string: String, template: String) -> String {
         do {
             var replacementResult = string
@@ -173,7 +171,7 @@ final class RegexManager {
             return string
         }
     }
-    
+
     func replaceFirstStringByRegex(_ pattern: String, string: String, templateString: String) -> String {
         do {
             let regex = try regexWithPattern(pattern)
@@ -186,7 +184,7 @@ final class RegexManager {
             return String()
         }
     }
-    
+
     func stringByReplacingOccurrences(_ string: String, map: [String:String]) -> String {
         var targetString = String()
         for i in 0 ..< string.count {
@@ -198,9 +196,9 @@ final class RegexManager {
         }
         return targetString
     }
-    
+
     // MARK: Validations
-    
+
     func hasValue(_ value: String?) -> Bool {
         if let valueString = value {
             if valueString.trimmingCharacters(in: spaceCharacterSet).count == 0 {
@@ -212,7 +210,7 @@ final class RegexManager {
             return false
         }
     }
-    
+
     func testStringLengthAgainstPattern(_ pattern: String, string: String) -> Bool {
         if (matchesEntirely(pattern, string: string)) {
             return true
@@ -221,7 +219,7 @@ final class RegexManager {
             return false
         }
     }
-    
+
 }
 
 
@@ -230,7 +228,12 @@ final class RegexManager {
 
 extension String {
     func substring(with range: NSRange) -> String {
+#if os(Linux)
+        // NSString to string coercion is not available on Linux implementation
+        let nsString = NSString(string: self)
+#else
         let nsString = self as NSString
+#endif
         return nsString.substring(with: range)
     }
 }
