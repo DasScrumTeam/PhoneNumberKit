@@ -214,14 +214,16 @@ final class PhoneNumberParser {
                 let capturingDigitPatterns = try NSRegularExpression(pattern: PhoneNumberPatterns.capturingDigitPattern, options: NSRegularExpression.Options.caseInsensitive)
                 let matchedGroups = capturingDigitPatterns.matches(in: remainString as String)
                 if let firstMatch = matchedGroups.first {
+                    let digitMatched = remainString.substring(with: firstMatch.range)
 #if os(Linux)
                     // string to NSString coercion is not available on Linux implementation
-                    let digitMatched = NSString(string: remainString.substring(with: firstMatch.range))
+                    let digitMatchedNSString = NSString(string: digitMatched)
 #else
-                    let digitMatched = remainString.substring(with: firstMatch.range) as NSString
+                    
+                    let digitMatchedNSString = digitMatched as NSString
 #endif
-                    if digitMatched.length > 0 {
-                        let normalizedGroup =  regex.stringByReplacingOccurrences(digitMatched as String, map: PhoneNumberPatterns.allNormalizationMappings)
+                    if digitMatchedNSString.length > 0 {
+                        let normalizedGroup =  regex.stringByReplacingOccurrences(digitMatched, map: PhoneNumberPatterns.allNormalizationMappings)
                         if normalizedGroup == "0" {
                             return false
                         }
