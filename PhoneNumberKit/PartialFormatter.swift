@@ -189,7 +189,12 @@ public final class PartialFormatter {
         var processedNumber = rawNumber
         do {
             if let internationalPrefix = currentMetadata?.internationalPrefix {
+#if os(Linux)
+                // temporary fix until https://bugs.swift.org/browse/SR-957 is available
+                let prefixPattern = String(format: PhoneNumberPatterns.iddPattern, arguments: [internationalPrefix as! CVarArg])
+#else
                 let prefixPattern = String(format: PhoneNumberPatterns.iddPattern, arguments: [internationalPrefix])
+#endif
                 let matches = try regexManager?.matchedStringByRegex(prefixPattern, string: rawNumber)
                 if let m = matches?.first {
                     let startCallingCode = m.count
@@ -214,7 +219,12 @@ public final class PartialFormatter {
         else {
             do {
                 if let nationalPrefix = currentMetadata?.nationalPrefixForParsing {
+#if os(Linux)
+                    // temporary fix until https://bugs.swift.org/browse/SR-957 is available
+                    let nationalPrefixPattern = String(format: PhoneNumberPatterns.nationalPrefixParsingPattern, arguments: [nationalPrefix as! CVarArg])
+#else
                     let nationalPrefixPattern = String(format: PhoneNumberPatterns.nationalPrefixParsingPattern, arguments: [nationalPrefix])
+#endif
                     let matches = try regexManager?.matchedStringByRegex(nationalPrefixPattern, string: rawNumber)
                     if let m = matches?.first {
                         startOfNationalNumber = m.count
@@ -289,7 +299,13 @@ public final class PartialFormatter {
         guard let regexManager = regexManager else { return nil }
         for format in formats {
             if let pattern = format.pattern, let formatTemplate = format.format {
+#if os(Linux)
+                // temporary fix until https://bugs.swift.org/browse/SR-957 is available
+                let patternRegExp = String(format: PhoneNumberPatterns.formatPattern, arguments: [pattern as! CVarArg])
+#else
                 let patternRegExp = String(format: PhoneNumberPatterns.formatPattern, arguments: [pattern])
+#endif
+
                 do {
                     let matches = try regexManager.regexMatches(patternRegExp, string: rawNumber)
                     if matches.count > 0 {
