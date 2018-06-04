@@ -45,15 +45,24 @@ final class MetadataManager {
     /// - returns: array of MetadataTerritory objects
     fileprivate func populateTerritories() -> [MetadataTerritory] {
         var territoryArray = [MetadataTerritory]()
-        let frameworkBundle = Bundle(for: PhoneNumberKit.self)
         do {
-            if let jsonPath = frameworkBundle.path(forResource: "PhoneNumberMetadata", ofType: "json"), let jsonData = try? Data(contentsOf: URL(fileURLWithPath: jsonPath)), let jsonObjects = try JSONSerialization.jsonObject(with: jsonData, options: JSONSerialization.ReadingOptions.allowFragments) as? NSDictionary, let metadataDict = jsonObjects["phoneNumberMetadata"] as? NSDictionary, let metadataTerritories = metadataDict["territories"] as? NSDictionary , let metadataTerritoryArray = metadataTerritories["territory"] as? NSArray {
+            let jsonPath = "/tmp/PhoneNumberMetadata.json"
+            let jsonData = try Data(contentsOf: URL(fileURLWithPath: jsonPath))
+            let dictionary = try JSONSerialization.jsonObject(with: jsonData, options: JSONSerialization.ReadingOptions.allowFragments)
+            if let dictionary = dictionary as? [AnyHashable: Any] {
+                let jsonObjects = NSDictionary(dictionary: dictionary)
+                print("hier")
+                if let metadataDict = jsonObjects["phoneNumberMetadata"] as? [AnyHashable: Any], let metadataTerritories = metadataDict["territories"] as? [AnyHashable: Any], let metadataTerritoryArray = metadataTerritories["territory"] as? [Any] {
+                    print("hier 2")
+                    let metadataTerritoryArray = NSArray(array: metadataTerritoryArray)
                     metadataTerritoryArray.forEach({
-                        if let territoryDict = $0 as? NSDictionary {
+                        if let td = $0 as? [AnyHashable: Any] {
+                            let territoryDict = NSDictionary(dictionary: td)
                             let parsedTerritory = MetadataTerritory(jsondDict: territoryDict)
                             territoryArray.append(parsedTerritory)
                         }
                     })
+                }
             }
         }
         catch {}
