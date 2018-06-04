@@ -214,7 +214,12 @@ final class PhoneNumberParser {
                 let capturingDigitPatterns = try NSRegularExpression(pattern: PhoneNumberPatterns.capturingDigitPattern, options: NSRegularExpression.Options.caseInsensitive)
                 let matchedGroups = capturingDigitPatterns.matches(in: remainString as String)
                 if let firstMatch = matchedGroups.first {
+#if os(Linux)
+                    // string to NSString coercion is not available on Linux implementation
+                    let digitMatched = NSString(string: remainString.substring(with: firstMatch.range))
+#else
                     let digitMatched = remainString.substring(with: firstMatch.range) as NSString
+#endif
                     if digitMatched.length > 0 {
                         let normalizedGroup =  regex.stringByReplacingOccurrences(digitMatched as String, map: PhoneNumberPatterns.allNormalizationMappings)
                         if normalizedGroup == "0" {
@@ -290,7 +295,12 @@ final class PhoneNumberParser {
         guard let possibleNationalPrefix = metadata.nationalPrefixForParsing else {
             return
         }
+#if os(Linux)
+        // temporary fix until https://bugs.swift.org/browse/SR-957 is available
+        let prefixPattern = String(format: "^(?:%@)", possibleNationalPrefix as! CVarArg)
+#else
         let prefixPattern = String(format: "^(?:%@)", possibleNationalPrefix)
+#endif
         do {
             let matches = try regex.regexMatches(prefixPattern, string: number)
             if let firstMatch = matches.first {
